@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Web Collector Extension",
+  "version": "1.0",
+  "description": "Get the current URL of the active tab",
+  "permissions": ["tabs", "activeTab", "storage", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "icon-default.png",
+      "48": "icon-default.png",
+      "128": "icon-default.png"
+    }
+  },
+  "host_permissions": ["http://*/*", "https://*/*", "*://*/*", "<all_urls>"]
+}

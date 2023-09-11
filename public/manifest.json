@@ -3,7 +3,7 @@
   "name": "Web Collector Extension",
   "version": "1.0",
   "description": "Get the current URL of the active tab",
-  "permissions": ["tabs", "activeTab", "storage", "scripting"],
+  "permissions": ["tabs", "activeTab", "storage", "scripting", "notifications"],
   "background": {
     "service_worker": "background.js",
     "type": "module"

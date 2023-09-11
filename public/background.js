@@ -33,7 +33,7 @@
 
     const arrayToTree = (arr, parentId = 0) => arr
         .filter((item) => item.parentId === parentId)
-        .map((child) => ({ key: child.id.toString(), title: child.title, parentId: child.parentId.toString(), children: arrayToTree(arr, child.id) }));
+        .map((child) => ({...child, key: child.id, children: arrayToTree(arr, child.id) }));
 
     chrome.tabs.onActivated.addListener((activeInfo) => {
         chrome.tabs.get(activeInfo.tabId, (tab) => {

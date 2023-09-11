@@ -1,43 +1,62 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-import { Input, Tree } from 'antd'
+import { Input, Tree, message } from 'antd'
 import { DataNode } from 'antd/es/tree';
 import Search from 'antd/es/input/Search';
 import TextArea from 'antd/es/input/TextArea';
 
-type TSiteInfo = {
+class SiteInfo {
   url?: string | undefined; 
   title?: string | undefined; 
   note?: string | undefined; 
-  tags?: number[] | undefined; 
+  tags: number[]; 
+  
+  constructor() {
+    this.tags = [];
+  }
 }
 
-type TDataState = {
-  tagDataNodes?: DataNode[] | undefined; 
-  siteInfo?: TSiteInfo | undefined; 
-  status?: boolean | undefined; 
+class DataState {
+  tagDataNodes: DataNode[]; 
+  siteInfo: SiteInfo; 
   error?: string | undefined; 
+
+  constructor() {
+    this.tagDataNodes = [];
+    this.siteInfo = new SiteInfo();
+  }
 }
 
 function App() {
   const [count, setCount] = useState("")
-  const [dataState, setDataState] = useState<TDataState | null>(null);
+  const [dataState, setDataState] = useState<DataState>(new DataState());
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  // const offlineData = () => {
+  //   const temp:DataState = new DataState();
+  //   temp.tagDataNodes = [{key:1, title:"React", children:[{key:4, title:"React 6", children:[]}]}, {key:2, title:"React 1", children:[]}, {key:3, title:"React 2", children:[]}];
+  //   return temp;
+  // }
 
   const fetchData = async () => {
+    //const response:DataState = {error: "adaafasf", tagDataNodes:[]}//offlineData(); // use this for debugging
     const tabs = await chrome.tabs.query({active: true, lastFocusedWindow: true});
     const response = await chrome.runtime.sendMessage({command: "get-state", param: {url: tabs[0].url}});
-    if(response?.tagDataNodes)
+
+    if (response.error) 
     {
-      setDataState(() => response);
-      if(response.siteInfo)
-      {
-        setCheckedKeys(() => response.siteInfo.tags.map((a:number) => a.toString()))      //TODO: convert keys to integer
-      }
+      messageApi.open({type: 'error', content: response.error, duration: 7})
+    } 
+    if(!response.siteInfo)
+    {
+      response.siteInfo = new SiteInfo();
     }
+    setDataState(() => response);
+    setCheckedKeys(() => response.siteInfo.tags);
   }
 
   useEffect(() => {
@@ -53,24 +72,22 @@ function App() {
   };
 
   const onCheck = (checkedKeysValue: React.Key[]) => {
-    console.log('onCheck', checkedKeysValue);
+    //console.log('onCheck', checkedKeysValue);
     setCheckedKeys(checkedKeysValue);
 
     const temp = {...dataState};
-    if(temp?.siteInfo)
-    {
-      temp.siteInfo.tags = checkedKeysValue.map(k => parseInt(k.toString()))
-      setDataState(temp);
-    }
+    temp.siteInfo.tags = checkedKeysValue as number[];
+    setDataState(temp);
   };
 
-  const onSelect = (selectedKeysValue: React.Key[], info: any) => {
-    console.log('onSelect', info);
+  const onSelect = (selectedKeysValue: React.Key[]) => {
+    //console.log('onSelect', info);
     setSelectedKeys(selectedKeysValue);
   };
 
   return (
     <>
+      {contextHolder}
       <Input placeholder="Title" value={dataState?.siteInfo?.title} />
       <TextArea rows={4} placeholder="Notes" maxLength={200} value={dataState?.siteInfo?.note} />
       <Search style={{ marginBottom: 8 }} placeholder="Search" />
@@ -87,7 +104,7 @@ function App() {
       />
       <div className="card">
         <button onClick={() => setCount(() => JSON.stringify(dataState))}>
-          count is {count}
+          {count}
         </button>
       </div>
     </>

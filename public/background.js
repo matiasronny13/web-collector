@@ -6,7 +6,18 @@
         siteInfo: null,
     }
 
-    const validateIcon = (url) => {        
+    const populateTagDataNodes = () => {
+        fetch('http://localhost/api/tags', {method: "GET", headers: {'Accept': 'application/json'}})
+        .then(response => response.json())
+        .then(json => {
+            state.tagDataNodes = arrayToTree(json);
+        })
+        .catch(error => {            
+            state.error = `error fetching tags. ${error}`;
+        });  
+    }
+
+    const validateUrl = (url) => {        
         state.siteInfo = null;
         const hash = md5(url.trim());
         fetch(`http://localhost/api/collection/${hash}`, {method: "GET", headers: {'Accept': 'application/json'}})
@@ -27,14 +38,14 @@
     chrome.tabs.onActivated.addListener((activeInfo) => {
         chrome.tabs.get(activeInfo.tabId, (tab) => {
             if (tab && tab.url) { 
-                validateIcon(tab.url);
+                validateUrl(tab.url);
             }
         });
     });
 
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         if (changeInfo.url) {
-            validateIcon(changeInfo.url);
+            validateUrl(changeInfo.url);
         }
     });
 
@@ -44,31 +55,16 @@
             switch (request.command)
             {
                 case "get-state":
-                    if(!state.tagDataNodes)
-                    {
-                        fetch('http://localhost/api/tags', {method: "GET", headers: {'Accept': 'application/json'}})
-                        .then(response => response.json())
-                        .then(json => {
-                            state.tagDataNodes = arrayToTree(json);
-                            state.status = true;
-                            sendResponse(state);
-                        })
-                        .catch(error => {                                
-                            sendResponse({status: false, error: "error fetching tags"});
-                        });  
-                    }
-                    else
-                    {
-                        state.status = true;
-                        sendResponse(state);
-                    }
+                    sendResponse(state);
                     break;
                 default:
-                    sendResponse({status: true, error: "command not found"});
+                    sendResponse({error: "command not found"});
             }
             
             return true; //workaround to fix connection close due to calling another async
         }
     );
+
+    populateTagDataNodes();
 })();
 

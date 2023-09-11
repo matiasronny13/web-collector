@@ -89,7 +89,7 @@ function App() {
     <>
       {contextHolder}
       <Input placeholder="Title" value={dataState?.siteInfo?.title} />
-      <TextArea rows={4} placeholder="Notes" maxLength={200} value={dataState?.siteInfo?.note} />
+      <TextArea rows={3} placeholder="Notes" maxLength={200} value={dataState?.siteInfo?.note} />
       <Search style={{ marginBottom: 8 }} placeholder="Search" />
       <Tree
         checkable
@@ -101,6 +101,7 @@ function App() {
         onSelect={onSelect}
         selectedKeys={selectedKeys}
         treeData={dataState?.tagDataNodes}
+        height={300}
       />
       <div className="card">
         <button onClick={() => setCount(() => JSON.stringify(dataState))}>

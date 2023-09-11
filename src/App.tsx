@@ -6,25 +6,17 @@ import Search from 'antd/es/input/Search';
 import TextArea from 'antd/es/input/TextArea';
 
 class SiteInfo {
+  id?:string | undefined;
   url?: string | undefined; 
   title?: string | undefined; 
   note?: string | undefined; 
-  tags: number[]; 
-  
-  constructor() {
-    this.tags = [];
-  }
+  tags?: number[] | undefined; 
 }
 
 class DataState {
-  tagDataNodes: DataNode[]; 
-  siteInfo: SiteInfo; 
+  tagDataNodes?: DataNode[]; 
+  siteInfo?: SiteInfo; 
   error?: string | undefined; 
-
-  constructor() {
-    this.tagDataNodes = [];
-    this.siteInfo = new SiteInfo();
-  }
 }
 
 function App() {
@@ -51,17 +43,28 @@ function App() {
     {
       messageApi.open({type: 'error', content: response.error, duration: 7})
     } 
-    if(!response.siteInfo)
-    {
-      response.siteInfo = new SiteInfo();
-    }
     setDataState(() => response);
     setCheckedKeys(() => response.siteInfo.tags);
   }
 
   useEffect(() => {
-    fetchData().catch(console.error); 
+    fetchData(); //.catch(console.error); TODO: need to handle error?
   }, []);
+
+  const onResetDataState = () => {
+    fetchData().catch(console.error); 
+  };
+
+  const onSaveChanges = () => {
+    const asyncSaveChanges = async() => {
+      await chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo});
+    }
+    asyncSaveChanges();
+  };
+
+  const onTextChange = (event:KeyboardEvent<HTMLInputElement>) => {
+    
+  }
 
   const onExpand = (expandedKeysValue: React.Key[]) => {
     console.log('onExpand', expandedKeysValue);
@@ -76,7 +79,7 @@ function App() {
     setCheckedKeys(checkedKeysValue);
 
     const temp = {...dataState};
-    temp.siteInfo.tags = checkedKeysValue as number[];
+    temp.siteInfo!.tags = checkedKeysValue as number[];
     setDataState(temp);
   };
 
@@ -88,6 +91,7 @@ function App() {
   return (
     <>
       {contextHolder}
+      <div>{dataState?.siteInfo?.url}</div>
       <Input placeholder="Title" value={dataState?.siteInfo?.title} />
       <TextArea rows={3} placeholder="Notes" maxLength={200} value={dataState?.siteInfo?.note} />
       <Search style={{ marginBottom: 8 }} placeholder="Search" />
@@ -104,10 +108,11 @@ function App() {
         height={300}
       />
       <div className="card">
-        <button onClick={() => setCount(() => JSON.stringify(dataState))}>
-          {count}
-        </button>
+        <button onClick={onSaveChanges}>Save</button>
+        <button onClick={onResetDataState}>Reset</button>
+        <button onClick={() => setCount(() => JSON.stringify(dataState))}>Debug</button>        
       </div>
+      <div>{count}</div>
     </>
   )
 }

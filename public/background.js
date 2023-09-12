@@ -4,10 +4,10 @@
     
     class SiteInfo
     {
-        constructor(url) {
+        constructor(url, title) {
             this.id = undefined;
             this.url = url;
-            this.title = undefined;
+            this.title = title;
             this.note = undefined;
             this.tags = [];
         }
@@ -29,8 +29,8 @@
         });  
     }
 
-    const validateUrl = (url) => {        
-        state.siteInfo = new SiteInfo(url);
+    const validateUrl = (siteInfo) => {        
+        state.siteInfo = siteInfo
         const hash = md5(url.trim());
         fetch(`http://localhost/api/collection/${hash}`, {method: "GET", headers: {'Accept': 'application/json'}})
         .then(response => response.json())
@@ -86,14 +86,14 @@
     chrome.tabs.onActivated.addListener((activeInfo) => {
         chrome.tabs.get(activeInfo.tabId, (tab) => {
             if (tab && tab.url) { 
-                validateUrl(tab.url);
+                validateUrl(new SiteInfo(tab.url, tab.title));
             }
         });
     });
 
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         if (changeInfo.url) {
-            validateUrl(changeInfo.url);
+            validateUrl(new SiteInfo(changeInfo.url, tab.title));
         }
     });
 

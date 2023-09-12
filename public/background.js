@@ -25,7 +25,7 @@
             state.tagDataNodes = arrayToTree(json);
         })
         .catch(error => {            
-            state.error = `error fetching tags. ${error}`;
+            state.error = `error fetching tags. ${error.message}`;
         });  
     }
 
@@ -42,6 +42,42 @@
             chrome.action.setIcon({ path: "/icon-default.png" });
         });  
     };
+
+    const saveSiteinfo = (sendResponse, data) => {
+        let httpMethod = "PUT"
+        if(!data.id) {
+            httpMethod = "POST"
+            data.id = md5(data.url.trim());
+        }
+
+        fetch("http://localhost/api/collection", {method: httpMethod, headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}, body:JSON.stringify(data)})
+        .then(response => response.json())
+        .then(json => {
+            if(state.siteInfo.url == data.url) //make sure state has not been overwritten by other async task
+            {            
+                chrome.action.setIcon({ path: "/icon-tagged.png" });
+                state.siteInfo = json;
+                chrome.notifications.create({
+                    type: "basic",
+                    title: "Save Collection",
+                    message: "Successfuly save ",
+                    iconUrl: "/icon-default.png",
+                })
+            }
+        })
+        .catch(error => {
+            state.error = error.message
+            chrome.notifications.create({
+                type: "basic",
+                title: "Save Collection",
+                message: `Failed to save. ${error.message}`,
+                iconUrl: "/icon-default.png",
+            })
+        })
+        .finally(() => {
+            sendResponse(state)
+        }); 
+    }
 
     const arrayToTree = (arr, parentId = 0) => arr
         .filter((item) => item.parentId === parentId)
@@ -68,6 +104,9 @@
             {
                 case "get-state":
                     sendResponse(state);
+                    break;
+                case "save-site-info":
+                    saveSiteinfo(sendResponse, request.siteInfo);
                     break;
                 default:
                     sendResponse({error: "command not found"});

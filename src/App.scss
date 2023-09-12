@@ -1,7 +1,27 @@
 .app {
     display: flex;
     flex-direction: column;
+    flex-wrap: wrap;
     gap: 10px;
+    position: relative;
+
+    .spinner {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 5px;
+        background-color: rgba(171, 206, 238, 0.5);
+    }
+
+    input, textarea {
+        outline: none;
+        border: none;
+        padding: 5px;
+        background-color: rgb(238, 238, 238);
+        border-radius: 5px;
+        color: black;
+    }
 
     .siteUrl {
         width: 380px;

@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import './App.scss'
-import { Input, Tree, message } from 'antd'
+import { Tree, message } from 'antd'
 import { DataNode } from 'antd/es/tree';
-import Search from 'antd/es/input/Search';
-import TextArea from 'antd/es/input/TextArea';
 
 class SiteInfo {
   id?:string | undefined;
@@ -27,25 +25,38 @@ function App() {
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
   const [messageApi, contextHolder] = message.useMessage();
 
-  // const offlineData = () => {
-  //   const temp:DataState = new DataState();
-  //   temp.siteInfo = new  SiteInfo();
-  //   temp.siteInfo.url = "https:dfsfslkfskfsdkflhsdfklsdflksdhfklssdklfsdkgsdfklsdkflhsdklfhsdkfdkfskfskdjnfkjsdfnksjdfdsfkjh"
-  //   temp.tagDataNodes = [{key:1, title:"React", children:[{key:4, title:"React 6", children:[]}]}, {key:2, title:"React 1", children:[]}, {key:3, title:"React 2", children:[]}];
-  //   return temp;
-  // }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const offlineData = () => {
+    const temp:DataState = new DataState();
+    temp.siteInfo = new  SiteInfo();
+    temp.siteInfo.url = "https:dfsfslkfskfsdkflhsdfklsdflksdhfklssdklfsdkgsdfklsdkflhsdklfhsdkfdkfskfskdjnfkjsdfnksjdfdsfkjh"
+    temp.tagDataNodes = [{key:1, title:"React", children:[{key:4, title:"React 6", children:[]}]}, {key:2, title:"React 1", children:[]}, {key:3, title:"React 2", children:[]}];
+    return temp;
+  }
 
   const fetchData = async () => {
-    //const response:DataState = offlineData(); // use this for debugging
-    const tabs = await chrome.tabs.query({active: true, lastFocusedWindow: true});
-    const response = await chrome.runtime.sendMessage({command: "get-state", param: {url: tabs[0].url}});
+    const isOffline = false;
 
+    if(isOffline)
+    {
+      const response:DataState = offlineData(); // use this for debugging
+      bindResponse(response);
+    }
+    else
+    {
+      const tabs = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+      const response = await chrome.runtime.sendMessage({command: "get-state", param: {url: tabs[0].url}});
+      bindResponse(response)
+    }
+  }
+
+  const bindResponse = (response: DataState) => {
     if (response.error) 
     {
       messageApi.open({type: 'error', content: response.error, duration: 7})
     } 
     setDataState(() => response);
-    setCheckedKeys(() => response.siteInfo.tags);
+    setCheckedKeys(() => response.siteInfo?.tags as number[]);
   }
 
   useEffect(() => {
@@ -58,14 +69,10 @@ function App() {
 
   const onSaveChanges = () => {
     const asyncSaveChanges = async() => {
-      await chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo});
+      await chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo}, (response) => bindResponse(response));
     }
     asyncSaveChanges();
   };
-
-  // const onTextChange = (event:KeyboardEvent<HTMLInputElement>) => {
-    
-  // }
 
   const onExpand = (expandedKeysValue: React.Key[]) => {
     console.log('onExpand', expandedKeysValue);
@@ -89,13 +96,15 @@ function App() {
     setSelectedKeys(selectedKeysValue);
   };
 
+  const onTitleChange = (event:ChangeEvent<HTMLInputElement>) => setDataState((prev)=> ({...prev, siteInfo: {...prev.siteInfo, title: event.target.value}}));
+  const onNoteChange = (event:ChangeEvent<HTMLTextAreaElement>) => setDataState((prev)=> ({...prev, siteInfo: {...prev.siteInfo, note: event.target.value}}));
+
   return (
     <div className='app'>
       {contextHolder}
       <div title={dataState?.siteInfo?.url} className='siteUrl'>{dataState?.siteInfo?.url}</div>
-      <Input placeholder="Title" value={dataState?.siteInfo?.title} />
-      <TextArea rows={3} placeholder="Notes" maxLength={200} value={dataState?.siteInfo?.note} />
-      <Search style={{ marginBottom: 8 }} placeholder="Search" />
+      <input type="text" placeholder="Title" value={dataState?.siteInfo?.title} onChange={onTitleChange}/>
+      <textarea rows={3} placeholder="Note" maxLength={200} value={dataState?.siteInfo?.note} onChange={onNoteChange}/>
       <Tree
         checkable
         onExpand={onExpand}

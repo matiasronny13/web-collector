@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import './App.css'
+import './App.scss'
 import { Input, Tree, message } from 'antd'
 import { DataNode } from 'antd/es/tree';
 import Search from 'antd/es/input/Search';
@@ -20,7 +20,6 @@ class DataState {
 }
 
 function App() {
-  const [count, setCount] = useState("")
   const [dataState, setDataState] = useState<DataState>(new DataState());
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
@@ -30,12 +29,14 @@ function App() {
 
   // const offlineData = () => {
   //   const temp:DataState = new DataState();
+  //   temp.siteInfo = new  SiteInfo();
+  //   temp.siteInfo.url = "https:dfsfslkfskfsdkflhsdfklsdflksdhfklssdklfsdkgsdfklsdkflhsdklfhsdkfdkfskfskdjnfkjsdfnksjdfdsfkjh"
   //   temp.tagDataNodes = [{key:1, title:"React", children:[{key:4, title:"React 6", children:[]}]}, {key:2, title:"React 1", children:[]}, {key:3, title:"React 2", children:[]}];
   //   return temp;
   // }
 
   const fetchData = async () => {
-    //const response:DataState = {error: "adaafasf", tagDataNodes:[]}//offlineData(); // use this for debugging
+    //const response:DataState = offlineData(); // use this for debugging
     const tabs = await chrome.tabs.query({active: true, lastFocusedWindow: true});
     const response = await chrome.runtime.sendMessage({command: "get-state", param: {url: tabs[0].url}});
 
@@ -52,7 +53,7 @@ function App() {
   }, []);
 
   const onResetDataState = () => {
-    fetchData().catch(console.error); 
+    fetchData();
   };
 
   const onSaveChanges = () => {
@@ -62,9 +63,9 @@ function App() {
     asyncSaveChanges();
   };
 
-  const onTextChange = (event:KeyboardEvent<HTMLInputElement>) => {
+  // const onTextChange = (event:KeyboardEvent<HTMLInputElement>) => {
     
-  }
+  // }
 
   const onExpand = (expandedKeysValue: React.Key[]) => {
     console.log('onExpand', expandedKeysValue);
@@ -89,9 +90,9 @@ function App() {
   };
 
   return (
-    <>
+    <div className='app'>
       {contextHolder}
-      <div>{dataState?.siteInfo?.url}</div>
+      <div title={dataState?.siteInfo?.url} className='siteUrl'>{dataState?.siteInfo?.url}</div>
       <Input placeholder="Title" value={dataState?.siteInfo?.title} />
       <TextArea rows={3} placeholder="Notes" maxLength={200} value={dataState?.siteInfo?.note} />
       <Search style={{ marginBottom: 8 }} placeholder="Search" />
@@ -107,13 +108,11 @@ function App() {
         treeData={dataState?.tagDataNodes}
         height={300}
       />
-      <div className="card">
+      <div className="commandBar">
         <button onClick={onSaveChanges}>Save</button>
         <button onClick={onResetDataState}>Reset</button>
-        <button onClick={() => setCount(() => JSON.stringify(dataState))}>Debug</button>        
       </div>
-      <div>{count}</div>
-    </>
+    </div>
   )
 }
 

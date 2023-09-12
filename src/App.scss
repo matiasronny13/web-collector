@@ -1,0 +1,18 @@
+.app {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .siteUrl {
+        width: 380px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .commandBar {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+}

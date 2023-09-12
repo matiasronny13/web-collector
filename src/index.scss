@@ -24,11 +24,12 @@ a:hover {
 }
 
 body {
-  margin: 0;
   display: flex;
-  place-items: center;
-  min-width: 500px;
-  min-height: 600px;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 400px;
+  height: 560px;
+  padding: 10px;
 }
 
 h1 {

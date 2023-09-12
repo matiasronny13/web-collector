@@ -31,7 +31,7 @@
 
     const validateUrl = (siteInfo) => {        
         state.siteInfo = siteInfo
-        const hash = md5(url.trim());
+        const hash = md5(siteInfo.url);
         fetch(`http://localhost/api/collection/${hash}`, {method: "GET", headers: {'Accept': 'application/json'}})
         .then(response => response.json())
         .then(result => {        

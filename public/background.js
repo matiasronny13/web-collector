@@ -43,7 +43,7 @@
         });  
     };
 
-    const saveSiteinfo = (sendResponse, data) => {
+    const saveSiteinfo = (sendResponse, data, thumbnailData) => {
         let httpMethod = "PUT"
         if(!data.id) {
             httpMethod = "POST"
@@ -58,10 +58,11 @@
                 chrome.action.setIcon({ path: "/icon-tagged.png" });
                 state.siteInfo = json;
                 chrome.notifications.create({
-                    type: "basic",
-                    title: "Save Collection",
-                    message: "Successfuly save ",
-                    iconUrl: "/icon-default.png",
+                    type: "image",
+                    title: "Saving page",
+                    message: "Page successfuly saved",
+                    iconUrl: "/icon-tagged.png",
+                    imageUrl: thumbnailData
                 })
             }
         })
@@ -69,8 +70,8 @@
             state.error = error.message
             chrome.notifications.create({
                 type: "basic",
-                title: "Save Collection",
-                message: `Failed to save. ${error.message}`,
+                title: "Saving page",
+                message: `Page failed to save. ${error.message}`,
                 iconUrl: "/icon-default.png",
             })
         })
@@ -106,7 +107,7 @@
                     sendResponse(state);
                     break;
                 case "save-site-info":
-                    saveSiteinfo(sendResponse, request.siteInfo);
+                    saveSiteinfo(sendResponse, request.siteInfo, request.thumbnailData);
                     break;
                 default:
                     sendResponse({error: "command not found"});

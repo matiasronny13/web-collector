@@ -24,6 +24,7 @@ function App() {
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
   const [messageApi, contextHolder] = message.useMessage();
+  const [activeTabId, setActiveTabId] = useState(0)
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const offlineData = () => {
@@ -47,6 +48,7 @@ function App() {
       const tabs = await chrome.tabs.query({active: true, lastFocusedWindow: true});
       const response = await chrome.runtime.sendMessage({command: "get-state", param: {url: tabs[0].url}});
       bindResponse(response)
+      setActiveTabId(() => tabs[0].id ?? 0)
     }
   }
 
@@ -67,10 +69,51 @@ function App() {
     fetchData();
   };
 
+  const loadImage = (thumbnailData:string) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = thumbnailData;
+      img.onload = () => resolve(img);
+      img.onerror = (error) => reject(error);
+    });
+  };
+
+  function captureVisibleTab() {
+    return new Promise((resolve, reject) => {
+      chrome.tabs.get(activeTabId, async () => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+          return;
+        }
+        
+        try {
+          const screenshotData = await chrome.tabs.captureVisibleTab({ format: 'png' });
+          resolve(screenshotData);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  }
+
+  const getThumbnail = async () => {
+    const thumbnailData:any = await captureVisibleTab();
+    const img:any = await loadImage(thumbnailData)
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const newWidth = 400; // Adjust as needed
+    const newHeight = 280; // Adjust as needed
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    ctx?.drawImage(img, 0, 0, newWidth, newHeight);
+    return canvas.toDataURL('image/png');
+  }
+
   const onSaveChanges = () => {
     const asyncSaveChanges = async() => {
-      await chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo}, (response) => bindResponse(response));
-    }
+      const thumbnailData = await getThumbnail()
+      chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo, thumbnailData: thumbnailData}, (response) => bindResponse(response));
+    }    
     asyncSaveChanges();
   };
 

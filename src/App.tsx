@@ -158,7 +158,7 @@ function App() {
         onSelect={onSelect}
         selectedKeys={selectedKeys}
         treeData={dataState?.tagDataNodes}
-        height={300}
+        height={350}
       />
       <div className="commandBar">
         <button onClick={onSaveChanges}>Save</button>

@@ -26,7 +26,6 @@ function App() {
   const [messageApi, contextHolder] = message.useMessage();
   const [activeTabId, setActiveTabId] = useState(0)
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const offlineData = () => {
     const temp:DataState = new DataState();
     temp.siteInfo = new  SiteInfo();

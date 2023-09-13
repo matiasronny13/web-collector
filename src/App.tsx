@@ -101,8 +101,8 @@ function App() {
     const img:any = await loadImage(thumbnailData)
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const newWidth = 400; // Adjust as needed
-    const newHeight = 280; // Adjust as needed
+    const newWidth = 300; // Adjust as needed
+    const newHeight = 180; // Adjust as needed
     canvas.width = newWidth;
     canvas.height = newHeight;
     ctx?.drawImage(img, 0, 0, newWidth, newHeight);

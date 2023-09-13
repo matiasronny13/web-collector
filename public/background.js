@@ -49,8 +49,12 @@
             httpMethod = "POST"
             data.id = md5(data.url.trim());
         }
-
-        fetch("http://localhost/api/collection", {method: httpMethod, headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}, body:JSON.stringify(data)})
+        
+        fetch("http://localhost/api/collection", {
+            method: httpMethod, 
+            headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}, 
+            body:JSON.stringify({...data, thumbnailData: thumbnailData})
+        })
         .then(response => response.json())
         .then(json => {
             if(state.siteInfo.url == data.url) //make sure state has not been overwritten by other async task

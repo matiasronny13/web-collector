@@ -5,10 +5,10 @@
     class SiteInfo
     {
         constructor(url, title) {
-            this.id = undefined;
+            this.id = "";
             this.url = url;
             this.title = title;
-            this.note = undefined;
+            this.note = "";
             this.tags = [];
         }
     }
@@ -29,6 +29,10 @@
         });  
     }
 
+    /**
+     * 
+     * @param {SiteInfo} siteInfo 
+     */
     const validateUrl = (siteInfo) => {        
         state.siteInfo = siteInfo
         const hash = md5(siteInfo.url);

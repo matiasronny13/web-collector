@@ -44,7 +44,7 @@ function App() {
     }
     else
     {
-      const tabs = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+      const tabs = await chrome.tabs.query({active: true, currentWindow: true});
       const response = await chrome.runtime.sendMessage({command: "get-state", param: {url: tabs[0].url}});
       bindResponse(response)
       setActiveTabId(() => tabs[0].id ?? 0)

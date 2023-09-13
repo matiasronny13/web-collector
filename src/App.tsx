@@ -150,6 +150,7 @@ function App() {
       <textarea rows={3} placeholder="Note" maxLength={200} value={dataState?.siteInfo?.note} onChange={onNoteChange}/>
       <Tree
         checkable
+        checkStrictly={true}
         onExpand={onExpand}
         expandedKeys={expandedKeys}
         autoExpandParent={autoExpandParent}

@@ -19,24 +19,29 @@
     // }
 
     const populateTagDataNodes = () => {
-        fetch('http://localhost/api/tags', {method: "GET", headers: {'Accept': 'application/json'}})
-        .then(response => {
-            if(response.status == "200") 
-                return response.json();
-            else    
-                throw new Error(response.statusText);
-        })
-        .then(json => {
-            chrome.storage.session.set({ tagDataNodes: arrayToTree(json) });
-        })
-        .catch(error => {
-            chrome.notifications.create({
-                type: "basic",
-                title: "Populate Tags",
-                message: `Error fetching tags. ${error.message}`,
-                iconUrl: "/icon-default.png",
-            })
-        });  
+        chrome.storage.session.get(["tagDataNodes"]).then(result => {
+            if(!result.tagDataNodes)
+            {
+                fetch('http://localhost/api/tags', {method: "GET", headers: {'Accept': 'application/json'}})
+                .then(response => {
+                    if(response.status == "200") 
+                        return response.json();
+                    else    
+                        throw new Error(response.statusText);
+                })
+                .then(json => {
+                    chrome.storage.session.set({ tagDataNodes: arrayToTree(json) });
+                })
+                .catch(error => {
+                    chrome.notifications.create({
+                        type: "basic",
+                        title: "Populate Tags",
+                        message: `Error fetching tags. ${error.message}`,
+                        iconUrl: "/icon-default.png",
+                    })
+                });  
+            }
+        });        
     }
 
     /**

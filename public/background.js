@@ -150,8 +150,6 @@
         }
     );
 
-    self.addEventListener("activate", () => {
-        populateTagDataNodes()
-    });
+    populateTagDataNodes()
 })();
 

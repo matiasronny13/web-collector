@@ -13,19 +13,29 @@
         }
     }
     
-    const state = {
-        tagDataNodes: null,
-        siteInfo: null,
-    }
+    // const state = {
+    //     //tagDataNodes: null,
+    //     //siteInfo: null,
+    // }
 
     const populateTagDataNodes = () => {
         fetch('http://localhost/api/tags', {method: "GET", headers: {'Accept': 'application/json'}})
-        .then(response => response.json())
-        .then(json => {
-            state.tagDataNodes = arrayToTree(json);
+        .then(response => {
+            if(response.status == "200") 
+                return response.json();
+            else    
+                throw new Error(response.statusText);
         })
-        .catch(error => {            
-            state.error = `error fetching tags. ${error.message}`;
+        .then(json => {
+            chrome.storage.session.set({ tagDataNodes: arrayToTree(json) });
+        })
+        .catch(error => {
+            chrome.notifications.create({
+                type: "basic",
+                title: "Populate Tags",
+                message: `Error fetching tags. ${error.message}`,
+                iconUrl: "/icon-default.png",
+            })
         });  
     }
 
@@ -33,21 +43,28 @@
      * 
      * @param {SiteInfo} siteInfo 
      */
-    const validateUrl = (siteInfo) => {        
-        state.siteInfo = siteInfo
+    const validateUrl = (siteInfo) => {          
         const hash = md5(siteInfo.url);
         fetch(`http://localhost/api/collection/${hash}`, {method: "GET", headers: {'Accept': 'application/json'}})
-        .then(response => response.json())
+        .then(response => {
+            if(response.status == "200") 
+                return response.json();
+            else    
+                throw new Error(response.statusText);
+        })
         .then(result => {        
             chrome.action.setIcon({ path: "/icon-tagged.png" }); //TODO: optimize by storing image in cache
-            state.siteInfo = result;
+            chrome.storage.session.set({ siteInfo: result });
         })
         .catch(error => {
             chrome.action.setIcon({ path: "/icon-default.png" });
+            chrome.storage.session.set({ siteInfo: siteInfo });
         });  
     };
 
-    const saveSiteinfo = (sendResponse, data, thumbnailData) => {
+    const saveSiteinfo = async (sendResponse, data, thumbnailData) => {
+        const state = await chrome.storage.session.get(["tagDataNodes", "siteInfo"])
+
         let httpMethod = "PUT"
         if(!data.id) {
             httpMethod = "POST"
@@ -59,12 +76,18 @@
             headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}, 
             body:JSON.stringify({...data, thumbnailData: thumbnailData})
         })
-        .then(response => response.json())
+        .then(response => {
+            if(response.status == "200" || response.status == "201") 
+                return response.json();
+            else    
+                throw new Error(response.statusText);
+        })
         .then(json => {
             if(state.siteInfo.url == data.url) //make sure state has not been overwritten by other async task
             {            
-                chrome.action.setIcon({ path: "/icon-tagged.png" });
                 state.siteInfo = json;
+                chrome.action.setIcon({ path: "/icon-tagged.png" });
+                chrome.storage.session.set({ siteInfo: json });
                 chrome.notifications.create({
                     type: "image",
                     title: "Saving page",
@@ -112,7 +135,9 @@
             switch (request.command)
             {
                 case "get-state":
-                    sendResponse(state);
+                    chrome.storage.session.get(["tagDataNodes", "siteInfo"]).then(result => {
+                        sendResponse(result);
+                    });
                     break;
                 case "save-site-info":
                     saveSiteinfo(sendResponse, request.siteInfo, request.thumbnailData);
@@ -125,6 +150,8 @@
         }
     );
 
-    populateTagDataNodes();
+    self.addEventListener("activate", () => {
+        populateTagDataNodes()
+    });
 })();
 

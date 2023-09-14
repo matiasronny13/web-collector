@@ -113,7 +113,8 @@
 
     const arrayToTree = (arr, parentId = 0) => arr
         .filter((item) => item.parentId === parentId)
-        .map((child) => ({...child, key: child.id, children: arrayToTree(arr, child.id) }));
+        .map((child) => ({...child, key: child.id, children: arrayToTree(arr, child.id) }))
+        .sort((x, y) => (x.title > y.title) ? 1 : -1);
 
     chrome.tabs.onActivated.addListener((activeInfo) => {
         chrome.tabs.get(activeInfo.tabId, (tab) => {

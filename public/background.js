@@ -134,9 +134,11 @@
     });
 
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-        if (changeInfo.url) {
-            validateUrl(new SiteInfo(changeInfo.url, tab.title));
-        }
+        chrome.tabs.get(tabId, (tab) => {
+            if (tab && tab.url) { 
+                validateUrl(new SiteInfo(tab.url, tab.title));
+            }
+        });
     });
 
     chrome.runtime.onMessage.addListener(

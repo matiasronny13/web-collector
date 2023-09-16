@@ -24,7 +24,6 @@ function App() {
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
   const [messageApi, contextHolder] = message.useMessage();
-  const [activeTabId, setActiveTabId] = useState(0)
 
   const offlineData = () => {
     const temp:DataState = new DataState();
@@ -44,10 +43,8 @@ function App() {
     }
     else
     {
-      const tabs = await chrome.tabs.query({active: true, currentWindow: true});
-      const response = await chrome.runtime.sendMessage({command: "get-state", param: {url: tabs[0].url}});
+      const response = await chrome.runtime.sendMessage({command: "get-state"});
       bindResponse(response)
-      setActiveTabId(() => tabs[0].id ?? 0)
     }
   }
 
@@ -68,7 +65,8 @@ function App() {
     fetchData();
   };
 
-  const onSaveChanges = () => {
+  const onSaveChanges = async () => {
+    //const tabs = await chrome.tabs.query({active: true, currentWindow: true});
     const asyncSaveChanges = async() => {
       chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo}, (response) => bindResponse(response));
     }    

@@ -68,50 +68,9 @@ function App() {
     fetchData();
   };
 
-  const loadImage = (thumbnailData:string) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = thumbnailData;
-      img.onload = () => resolve(img);
-      img.onerror = (error) => reject(error);
-    });
-  };
-
-  function captureVisibleTab() {
-    return new Promise((resolve, reject) => {
-      chrome.tabs.get(activeTabId, async () => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-          return;
-        }
-        
-        try {
-          const screenshotData = await chrome.tabs.captureVisibleTab({ format: 'png' });
-          resolve(screenshotData);
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
-  }
-
-  const getThumbnail = async () => {
-    const thumbnailData:any = await captureVisibleTab();
-    const img:any = await loadImage(thumbnailData)
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const newWidth = 300; // Adjust as needed
-    const newHeight = 180; // Adjust as needed
-    canvas.width = newWidth;
-    canvas.height = newHeight;
-    ctx?.drawImage(img, 0, 0, newWidth, newHeight);
-    return canvas.toDataURL('image/png');
-  }
-
   const onSaveChanges = () => {
     const asyncSaveChanges = async() => {
-      const thumbnailData = await getThumbnail()
-      chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo, thumbnailData: thumbnailData}, (response) => bindResponse(response));
+      chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo}, (response) => bindResponse(response));
     }    
     asyncSaveChanges();
   };

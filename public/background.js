@@ -12,11 +12,6 @@
             this.tags = [];
         }
     }
-    
-    // const state = {
-    //     //tagDataNodes: null,
-    //     //siteInfo: null,
-    // }
 
     const fetchTags = () => {
         fetch('http://localhost/api/tags', {method: "GET", headers: {'Accept': 'application/json'}})
@@ -71,7 +66,7 @@
         });  
     };
 
-    const saveSiteinfo = async (sendResponse, data, thumbnailData) => {
+    const saveSiteinfo = async (sendResponse, data) => {        
         const state = await chrome.storage.session.get(["tagDataNodes", "siteInfo"])
 
         let httpMethod = "PUT"
@@ -83,7 +78,7 @@
         fetch("http://localhost/api/collection", {
             method: httpMethod, 
             headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}, 
-            body:JSON.stringify({...data, thumbnailData: thumbnailData})
+            body:JSON.stringify(data)
         })
         .then(response => {
             if(response.status == "200" || response.status == "201") 
@@ -102,7 +97,7 @@
                     title: "Saving page",
                     message: "Page successfuly saved",
                     iconUrl: "/icon-tagged.png",
-                    imageUrl: thumbnailData
+                    imageUrl: "/icon-default.png"
                 })
             }
         })
@@ -152,7 +147,7 @@
                     });
                     break;
                 case "save-site-info":
-                    saveSiteinfo(sendResponse, request.siteInfo, request.thumbnailData);
+                    saveSiteinfo(sendResponse, request.siteInfo);
                     break;
                 default:
                     sendResponse({error: "command not found"});

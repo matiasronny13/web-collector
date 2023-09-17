@@ -94,10 +94,9 @@ function App() {
 
   const onSaveChanges = async () => {
     const tabs = await chrome.tabs.query({active: true, currentWindow: true});
-    const thumbnailData = await chrome.tabs.captureVisibleTab(tabs[0].windowId, { format: 'png' });
+    const thumbnailData = await chrome.tabs.captureVisibleTab(tabs[0].windowId, { format: 'jpeg', quality:10 });
     const faviconImage:HTMLImageElement = await loadImage(faviconURL(dataState?.siteInfo?.url ?? "")) as HTMLImageElement
     const faviconData = convertImageToDataUrl(faviconImage)
-
 
     const asyncSaveChanges = async() => {
       chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo, thumbnailData: thumbnailData, faviconData: faviconData}, (response) => bindResponse(response));

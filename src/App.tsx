@@ -77,7 +77,7 @@ function App() {
   function faviconURL(siteUrl:string) {
     const url = new URL(chrome.runtime.getURL("/_favicon/"));
     url.searchParams.set("pageUrl", siteUrl);
-    url.searchParams.set("size", "24");
+    url.searchParams.set("size", "16");
     return url.toString();
   }
   

@@ -65,10 +65,42 @@ function App() {
     fetchData();
   };
 
+  const loadImage = (thumbnailData:string) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = thumbnailData;
+      img.onload = () => resolve(img);
+      img.onerror = (error) => reject(error);
+    });
+  };
+
+  function faviconURL(siteUrl:string) {
+    const url = new URL(chrome.runtime.getURL("/_favicon/"));
+    url.searchParams.set("pageUrl", siteUrl);
+    url.searchParams.set("size", "32");
+    return url.toString();
+  }
+  
+  const convertImageToDataUrl = (img:HTMLImageElement) => {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    context?.drawImage(img, 0, 0);
+
+    return canvas.toDataURL('image/png');
+  }
+
   const onSaveChanges = async () => {
-    //const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+    const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+    const thumbnailData = await chrome.tabs.captureVisibleTab(tabs[0].windowId, { format: 'png' });
+    const faviconImage:HTMLImageElement = await loadImage(faviconURL(dataState?.siteInfo?.url ?? "")) as HTMLImageElement
+    const faviconData = convertImageToDataUrl(faviconImage)
+
+
     const asyncSaveChanges = async() => {
-      chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo}, (response) => bindResponse(response));
+      chrome.runtime.sendMessage({command: "save-site-info", siteInfo: dataState.siteInfo, thumbnailData: thumbnailData, faviconData: faviconData}, (response) => bindResponse(response));
     }    
     asyncSaveChanges();
   };

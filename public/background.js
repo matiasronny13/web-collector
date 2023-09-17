@@ -66,19 +66,19 @@
         });  
     };
 
-    const saveSiteinfo = async (sendResponse, data) => {        
+    const saveSiteinfo = async (data, sendResponse) => {        
         const state = await chrome.storage.session.get(["tagDataNodes", "siteInfo"])
 
         let httpMethod = "PUT"
-        if(!data.id) {
+        if(!data.siteInfo.id) {
             httpMethod = "POST"
-            data.id = md5(data.url.trim());
+            data.siteInfo.id = md5(data.siteInfo.url.trim());
         }
         
         fetch("http://localhost/api/collection", {
             method: httpMethod, 
             headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}, 
-            body:JSON.stringify(data)
+            body:JSON.stringify(data.siteInfo)
         })
         .then(response => {
             if(response.status == "200" || response.status == "201") 
@@ -87,7 +87,7 @@
                 throw new Error(response.statusText);
         })
         .then(json => {
-            if(state.siteInfo.url == data.url) //make sure state has not been overwritten by other async task
+            if(state.siteInfo.url == data.siteInfo.url) //make sure state has not been overwritten by other async task
             {            
                 state.siteInfo = json;
                 chrome.action.setIcon({ path: "/icon-tagged.png" });
@@ -97,7 +97,7 @@
                     title: "Saving page",
                     message: "Page successfuly saved",
                     iconUrl: "/icon-tagged.png",
-                    imageUrl: "/icon-default.png"
+                    imageUrl: data.thumbnailData
                 })
             }
         })
@@ -113,6 +113,27 @@
         .finally(() => {
             sendResponse(state)
         }); 
+
+        fetch("http://localhost/api/collection/upload", { method: "POST", 
+            headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}, 
+            body: JSON.stringify({ 
+                id: data.siteInfo.id,
+                thumbnailFile: data.thumbnailData,
+                faviconFile: data.faviconData
+            })
+        })
+        .then(uploadResponse => {
+                if(uploadResponse.status != 200) throw new Error(uploadResponse.statusText)    
+        })
+        .catch(error => {
+            state.error = error.message
+            chrome.notifications.create({
+                type: "basic",
+                title: "Upload thumbnail",
+                message: `Page failed to upload thumbnail. ${error.message}`,
+                iconUrl: "/icon-default.png",
+            })
+        })
     }
 
     const arrayToTree = (arr, parentId = 0) => arr
@@ -147,7 +168,7 @@
                     });
                     break;
                 case "save-site-info":
-                    saveSiteinfo(sendResponse, request.siteInfo);
+                    saveSiteinfo(request, sendResponse);
                     break;
                 default:
                     sendResponse({error: "command not found"});

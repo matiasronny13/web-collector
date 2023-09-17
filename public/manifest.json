@@ -3,7 +3,7 @@
   "name": "Web Collector Extension",
   "version": "1.0",
   "description": "Get the current URL of the active tab",
-  "permissions": ["tabs", "activeTab", "storage", "scripting", "notifications"],
+  "permissions": ["tabs", "activeTab", "storage", "scripting", "notifications", "favicon"],
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -19,5 +19,12 @@
   "host_permissions": ["http://*/*", "https://*/*", "*://*/*", "<all_urls>"],
   "externally_connectable": {
     "matches": ["http://localhost/dashboard/*"]
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["_favicon/*"],
+      "matches": ["<all_urls>"],
+      "extension_ids": ["*"]
+    }
+  ]
 }

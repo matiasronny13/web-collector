@@ -17,6 +17,11 @@ class DataState {
   error?: string | undefined; 
 }
 
+type SelectInfo = {
+  selected: boolean;
+  node: DataNode & {checked: boolean};
+}
+
 function App() {
   const [dataState, setDataState] = useState<DataState>(new DataState());
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
@@ -121,9 +126,33 @@ function App() {
     setDataState(temp);
   };
 
-  const onSelect = (selectedKeysValue: React.Key[]) => {
+  const onSelect = (selectedKeysValue: React.Key[], info:SelectInfo) => {
     //console.log('onSelect', info);
     setSelectedKeys(selectedKeysValue);
+    const isSelected = info.node.checked;
+    setCheckedKeys((prevKeys) => {
+      let newKeys: React.Key[];
+
+      if (prevKeys == undefined)
+      {
+        newKeys = selectedKeysValue;
+      }
+      else {
+        if (!isSelected && !prevKeys.includes(info.node.key)) {
+          newKeys = [...prevKeys, info.node.key];
+        } else if (isSelected) {
+          newKeys = prevKeys.filter(k => k !== info.node.key);
+        } else {
+          newKeys = prevKeys;
+        }
+      }
+
+      const temp = {...dataState};
+      temp.siteInfo!.tags = newKeys as number[];
+      setDataState(temp);
+
+      return newKeys
+    })
   };
 
   const onTitleChange = (event:ChangeEvent<HTMLInputElement>) => setDataState((prev)=> ({...prev, siteInfo: {...prev.siteInfo, title: event.target.value}}));
@@ -143,7 +172,7 @@ function App() {
         autoExpandParent={autoExpandParent}
         onCheck={(e) => onCheck(e as React.Key[])}
         checkedKeys={checkedKeys}
-        onSelect={onSelect}
+        onSelect={(e, info) => onSelect(e as React.Key[], info)}
         selectedKeys={selectedKeys}
         treeData={dataState?.tagDataNodes}
         height={350}

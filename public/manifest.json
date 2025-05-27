@@ -18,7 +18,7 @@
   },
   "host_permissions": ["http://*/*", "https://*/*", "*://*/*", "<all_urls>"],
   "externally_connectable": {
-    "matches": ["http://localhost/dashboard/*"]
+    "matches": ["http://localhost/dashboard/*", "http://localhost/portal/webtags/*"]
   },
   "web_accessible_resources": [
     {

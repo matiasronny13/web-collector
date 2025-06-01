@@ -1,0 +1,14 @@
+{
+    // Manually execute npm run dev first to start the development server, then use F5 to start debugging with this configuration.
+    "version": "0.2.0",
+    "configurations": [
+        {
+           "type": "msedge",
+            "request": "launch",
+            "name": "localhost (Edge)",
+            "url": "http://localhost:5173",
+            "webRoot": "${workspaceFolder}",
+            
+        }
+    ]
+}

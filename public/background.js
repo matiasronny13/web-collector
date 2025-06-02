@@ -150,11 +150,13 @@
     });
 
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-        chrome.tabs.get(tabId, (tab) => {
-            if (tab && tab.url) { 
-                validateUrl(new SiteInfo(tab.url, tab.title));
-            }
-        });
+        if (changeInfo.url) { //to ignore tradingview updating its tab title
+            chrome.tabs.get(tabId, (tab) => {
+                if (tab && tab.url) { 
+                    validateUrl(new SiteInfo(tab.url, tab.title));
+                }
+            });
+        }
     });
 
     chrome.runtime.onMessage.addListener(
